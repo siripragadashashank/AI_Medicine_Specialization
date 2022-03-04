@@ -11,10 +11,10 @@ from keras.engine import Input, Model
 from keras.layers import (
     Activation,
     Conv3D,
+    Deconvolution3D,
     MaxPooling3D,
     UpSampling3D,
 )
-from keras.layers import Conv3DTranspose
 from keras.layers.merge import concatenate
 from keras.optimizers import Adam
 from keras.utils import to_categorical
@@ -113,7 +113,7 @@ def get_up_convolution(n_filters, pool_size, kernel_size=(2, 2, 2),
                        strides=(2, 2, 2),
                        deconvolution=False):
     if deconvolution:
-        return Conv3DTranspose(filters=n_filters, kernel_size=kernel_size,
+        return Deconvolution3D(filters=n_filters, kernel_size=kernel_size,
                                strides=strides)
     else:
         return UpSampling3D(size=pool_size)
@@ -170,14 +170,14 @@ def unet_model_3d(loss_function, input_shape=(4, 160, 160, 16),
         up_convolution = get_up_convolution(pool_size=pool_size,
                                             deconvolution=deconvolution,
                                             n_filters=
-                                            current_layer.shape[1])(
+                                            current_layer._keras_shape[1])(
             current_layer)
         concat = concatenate([up_convolution, levels[layer_depth][1]], axis=1)
         current_layer = create_convolution_block(
-            n_filters=levels[layer_depth][1].shape[1],
+            n_filters=levels[layer_depth][1]._keras_shape[1],
             input_layer=concat, batch_normalization=batch_normalization)
         current_layer = create_convolution_block(
-            n_filters=levels[layer_depth][1].shape[1],
+            n_filters=levels[layer_depth][1]._keras_shape[1],
             input_layer=current_layer,
             batch_normalization=batch_normalization)
 
